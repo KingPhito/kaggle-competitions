@@ -9,7 +9,7 @@ class ModelParams:
     labels: np.ndarray
 
 
-class PriceEstimator:
+class LinearRegression:
     def __init__(self, params: ModelParams):
         self.params = params
 

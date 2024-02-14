@@ -1,4 +1,3 @@
-# House Prices - Advanced Regression Techniques
+# Kaggle Competitions
 
-This repository is for my submission to the Kaggle competition [House Prices - Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques).
-I'm using this project to practice building a linear regression model and to learn how to use the scikit-learn library.
+This repository is a collection of my work on Kaggle competitions. I have participated in a few competitions and have wanted to create a repository to store my work. I will be updating this repository as I participate in more competitions.
