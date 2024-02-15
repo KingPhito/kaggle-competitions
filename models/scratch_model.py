@@ -1,5 +1,13 @@
 from dataclasses import dataclass
+from enum import Enum
 import numpy as np
+from .linear import *
+from .logistic import *
+
+
+class ModelType(Enum):
+    LINEAR_REGRESSION = 1
+    LOGISTIC_REGRESSION = 2
 
 @dataclass
 class ModelParams:
@@ -7,32 +15,54 @@ class ModelParams:
     bias: float
     features: np.ndarray
     labels: np.ndarray
+    type: ModelType
+    regularize: bool = False
+    lambda_: float = 0.0
 
 
-class LinearRegression:
+class ScratchModel:
     def __init__(self, params: ModelParams):
         self.params = params
 
     def predict(self, feature: np.ndarray) -> float:
-        return np.dot(feature, self.params.weights) + self.params.bias
+        match self.params.type:
+            case ModelType.LINEAR_REGRESSION:
+                return linear_predict(feature, self.params.weights, self.params.bias)
+            case ModelType.LOGISTIC_REGRESSION:
+                return logistic_predict(feature, self.params.weights, self.params.bias)
+        return 0.
 
     def cost(self, features: np.ndarray, labels: np.ndarray) -> float:
-        row, _ = features.shape
-        total_cost = 0
-        for i in range(row):
-            total_cost += (self.predict(features[i]) - labels[i]) ** 2
-        return total_cost / 2*row 
+        match self.params.type:
+            case ModelType.LINEAR_REGRESSION:
+                if self.params.regularize:
+                    return linear_cost_with_reg(features, labels, self.params.weights, self.params.bias, self.params.lambda_)
+                return linear_cost(features, labels, self.params.weights, self.params.bias)
+            case ModelType.LOGISTIC_REGRESSION:
+                if self.params.regularize:
+                    return logistic_cost_with_reg(features, labels, self.params.weights, self.params.bias, self.params.lambda_)
+                return logistic_cost(features, labels, self.params.weights, self.params.bias)
+        return 0.
     
     def update_weights(self):
-        row, col = self.params.features.shape
+        rows, col = self.params.features.shape
         d_cost_w = np.zeros(col)
         d_cost_b = 0.
-        for i in range(row):
-            err = self.predict(self.params.features[i]) - self.params.labels[i]
+        for i in range(rows):
+            err = 0.
+            match self.params.type:
+                case ModelType.LINEAR_REGRESSION:
+                    err = linear_loss(self.params.features[i], self.params.labels[i], self.params.weights, self.params.bias)
+                case ModelType.LOGISTIC_REGRESSION:
+                    err = logistic_loss(self.params.features[i], self.params.labels[i], self.params.weights, self.params.bias)
             for j in range(col):
                 d_cost_w[j] += err * self.params.features[i][j]
             d_cost_b += err
-        return d_cost_w / row, d_cost_b / row
+        d_cost_w /= rows
+        d_cost_b /= rows
+        if self.params.regularize:
+            d_cost_w += (self.params.lambda_ / rows) * self.params.weights
+        return d_cost_w, d_cost_b
     
     def train(self, epochs: int, learning_rate: float):
         cost_history = []
