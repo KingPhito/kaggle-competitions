@@ -24,14 +24,22 @@ class ScratchModel:
     def __init__(self, params: ModelParams):
         self.params = params
 
-    def predict(self, feature: np.ndarray) -> float:
+    def predict(self, features: np.ndarray) -> float:
         match self.params.type:
             case ModelType.LINEAR_REGRESSION:
-                return linear_predict(feature, self.params.weights, self.params.bias)
+                return linear_predict(features, self.params.weights, self.params.bias)
             case ModelType.LOGISTIC_REGRESSION:
-                return logistic_predict(feature, self.params.weights, self.params.bias)
+                return logistic_predict(features, self.params.weights, self.params.bias)
         return 0.
 
+    def loss(self, features: np.ndarray, label: float) -> float:
+        match self.params.type:
+            case ModelType.LINEAR_REGRESSION:
+                return linear_loss(features, label, self.params.weights, self.params.bias)
+            case ModelType.LOGISTIC_REGRESSION:
+                return logistic_loss(features, label, self.params.weights, self.params.bias)
+        return 0.
+    
     def cost(self, features: np.ndarray, labels: np.ndarray) -> float:
         match self.params.type:
             case ModelType.LINEAR_REGRESSION:
